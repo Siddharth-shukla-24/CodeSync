@@ -20,22 +20,28 @@ const init = async () => {
   socket.emit('join-room', { roomId, username });
   
   const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
-
-  try{
-  const res = await fetch(`${serverUrl}/room/${roomId}`);
-  const data = await res.json();
-  if (data.room?.lastCode) {
-    setCode(data.room.lastCode);
-  }
-}catch{
-  await fetch(`${serverUrl}/room/create`,{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({roomId,createdBy:username})
-  });
-}
-};
   
+  // Pehle room create karo, phir fetch karo
+  try {
+    await fetch(`${serverUrl}/room/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomId, createdBy: username })
+    });
+  } catch {
+    // Room already exists — ignore
+  }
+
+  try {
+    const res = await fetch(`${serverUrl}/room/${roomId}`);
+    const data = await res.json();
+    if (data.room?.lastCode) {
+      setCode(data.room.lastCode);
+    }
+  } catch {
+    // No saved code — start fresh
+  }
+};
   init();
 
     socket.on('user-joined', ({ username: joinedUser }) => {
