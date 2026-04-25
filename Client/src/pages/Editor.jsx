@@ -20,11 +20,20 @@ const init = async () => {
   socket.emit('join-room', { roomId, username });
   
   const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
+
+  try{
   const res = await fetch(`${serverUrl}/room/${roomId}`);
   const data = await res.json();
   if (data.room?.lastCode) {
     setCode(data.room.lastCode);
   }
+}catch{
+  await fetch(`${serverUrl}/room/create`,{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({roomId,createdBy:username})
+  });
+}
 };
   
   init();
