@@ -16,15 +16,16 @@ function EditorPage() {
   const isRemoteUpdate = useRef(false);
 
 useEffect(() => {
-  const init = async () => {
-    socket.emit('join-room', { roomId, username });
-    
-    const res = await fetch(`http://localhost:3000/room/${roomId}`);
-    const data = await res.json();
-    if (data.room?.lastCode) {
-      setCode(data.room.lastCode);
-    }
-  };
+const init = async () => {
+  socket.emit('join-room', { roomId, username });
+  
+  const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
+  const res = await fetch(`${serverUrl}/room/${roomId}`);
+  const data = await res.json();
+  if (data.room?.lastCode) {
+    setCode(data.room.lastCode);
+  }
+};
   
   init();
 
