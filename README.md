@@ -1,16 +1,53 @@
-# React + Vite
+# 💻 CodeSync — Real-Time Collaborative Code Editor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A real-time collaborative code editor where multiple users can write and edit code together in the same room — like Google Docs, but for code.
 
-Currently, two official plugins are available:
+## 🌐 Live Demo
+**[codesync-rosy-nine.vercel.app](https://codesync-rosy-nine.vercel.app)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ✨ Features
+- Real-time code synchronization across multiple users
+- Room-based collaboration — create or join rooms instantly
+- Multiple language support — JavaScript, Python, C++, Java
+- Language sync — when one user switches language, all users see it
+- Code persistence — code is saved even after room refresh
+- Connected users list with live updates
+- Clean VS Code-like dark theme editor
 
-## React Compiler
+## 🛠 Tech Stack
+**Frontend:** React, Vite, Monaco Editor, Socket.io-client, React Router  
+**Backend:** Node.js, Express, Socket.io  
+**Database:** MongoDB Atlas  
+**Deployment:** Vercel (frontend) + Railway (backend)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Local Setup
 
-## Expanding the ESLint configuration
+### Backend
+```bash
+cd Server
+npm install
+# Create .env file with MONGO_URI
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Frontend
+```bash
+cd Client
+npm install
+# Create .env file with VITE_SERVER_URL=http://localhost:3000
+npm run dev
+```
+
+## 📁 Project Structure
+```
+CodeSync/
+├── Client/          # React frontend
+│   ├── src/
+│   │   ├── pages/   # Home & Editor pages
+│   │   └── socket.js
+└── Server/          # Node.js backend
+    ├── controllers/
+    ├── model/
+    ├── routes/
+    └── index.js
+```
