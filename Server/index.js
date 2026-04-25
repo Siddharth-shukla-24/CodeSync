@@ -56,6 +56,10 @@ io.on('connection',(socket)=>{
   );
   });
 
+  socket.on('language-change',({roomId,language})=>{
+    socket.to(roomId).emit('language-update',{language});
+  });
+
   socket.on('disconnect',()=>{
     for(const roomId in roomUsers){
       const user=roomUsers[roomId].find(u=>u.socketId===socket.id);

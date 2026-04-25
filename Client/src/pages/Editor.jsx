@@ -57,15 +57,22 @@ const init = async () => {
       setCode(newCode);
     });
 
+
+
     // ✅ Andar hai ab
     socket.on('room-users', (userList) => {
       setUsers(userList.filter(u => u !== username));
+    });
+
+    socket.on('language-update',({language:newLang})=>{
+      setLanguage(newLang);
     });
 
     return () => {
       socket.off('user-joined');
       socket.off('code-update');
       socket.off('room-users');
+      socket.off('language-update');
     };
   }, [roomId, username]);
 
@@ -76,6 +83,12 @@ const init = async () => {
     }
     setCode(newCode);
     socket.emit('code-change', { roomId, code: newCode });
+  };
+
+  const handleLanguageChange = (e) =>{
+    const newLang=e.target.value;
+    setLanguage(newLang);
+    socket.emit('language-change',{roomId, language:newLang});
   };
 
   return (
@@ -95,7 +108,7 @@ const init = async () => {
         <p style={styles.roomLabel}>Language:</p>
         <select
           value={language}
-          onChange={(e) => setLanguage(e.target.value)}
+          onChange={handleLanguageChange}
           style={styles.select}
         >
           <option value="javascript">JavaScript</option>
