@@ -11,7 +11,7 @@ function EditorPage() {
   const navigate = useNavigate();
   const username = location.state?.username || 'Anonymous';
 
-  const [code, setCode] = useState('// Start coding here...\n');
+const [code, setCode] = useState('// Start coding here...\n');
   const [users, setUsers] = useState([]);
   const [language, setLanguage] = useState('javascript');
   const [theme, setTheme] = useState('vs-dark');
