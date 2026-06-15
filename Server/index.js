@@ -1,79 +1,82 @@
 const express = require('express');
-const http=require('http');
-const {Server}=require('socket.io');
+const http = require('http');
+const { Server } = require('socket.io');
 const mongoose = require('mongoose');
-const cors=require('cors');
+const cors = require('cors');
 require('dotenv').config();
 
-const roomRoutes=require('./routes/roomRoutes');
+const roomRoutes = require('./routes/roomRoutes');
 const Room = require('./model/Room');
 
 const app = express();
-const server=http.createServer(app);
-const io=new Server(server,{
-  cors:{origin:'*'}
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: '*' },
+  transports: ['websocket', 'polling']
 });
+
 app.use(express.json());
 app.use(cors());
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(()=>console.log('MONGODB connected'))
-  .catch((err)=>console.log('Error:', err));
+  .then(() => console.log('MONGODB connected'))
+  .catch((err) => console.log('Error:', err));
 
-app.get('/health',(req,res)=>{
-  res.json({message:'Server is running'});
+app.get('/health', (req, res) => {
+  res.json({ message: 'Server is running' });
 });
 
-app.use('/room',roomRoutes);
+app.use('/room', roomRoutes);
 
-const roomUsers={};
+const roomUsers = {};
 
-io.on('connection',(socket)=>{
-  console.log('user connected',socket.id);
+io.on('connection', (socket) => {
+  console.log('user connected', socket.id);
 
-  socket.on('join-room',({roomId,username})=>{
+  socket.on('join-room', ({ roomId, username }) => {
     socket.join(roomId);
 
-    if(!roomUsers[roomId]) roomUsers[roomId]=[];
-    if(!roomUsers[roomId].some(u=>u.socketId===socket.id)){
-      roomUsers[roomId].push({socketId:socket.id,username});
+    if (!roomUsers[roomId]) roomUsers[roomId] = [];
+    if (!roomUsers[roomId].some(u => u.socketId === socket.id)) {
+      roomUsers[roomId].push({ socketId: socket.id, username });
     }
 
-    socket.to(roomId).emit('user-joined',{username});
-    io.to(roomId).emit('room-users',roomUsers[roomId].map(u=>u.username));
+    socket.to(roomId).emit('user-joined', { username });
+    io.to(roomId).emit('room-users', roomUsers[roomId].map(u => u.username));
 
-    console.log (`${username} joined room ${roomId}`);
+    console.log(`${username} joined room ${roomId}`);
   });
 
-  socket.on('code-change',async ({roomId,code})=>{
-    socket.to(roomId).emit('code-update',{code});
-  
-
-  await Room.findOneAndUpdate(
-    {roomId},
-    {lastCode: code},
-    {upsert: true}
-  );
+  socket.on('code-change', async ({ roomId, code }) => {
+    socket.to(roomId).emit('code-update', { code });
+    await Room.findOneAndUpdate(
+      { roomId },
+      { lastCode: code },
+      { upsert: true }
+    );
   });
 
-  socket.on('language-change',({roomId,language})=>{
-    socket.to(roomId).emit('language-update',{language});
+  socket.on('language-change', ({ roomId, language }) => {
+    socket.to(roomId).emit('language-update', { language });
   });
 
-  socket.on('disconnect',()=>{
-    for(const roomId in roomUsers){
-      const user=roomUsers[roomId].find(u=>u.socketId===socket.id);
-      if(user){
-        socket.to(roomId).emit('user-left',{username:user.username});
-      roomUsers[roomId]=roomUsers[roomId].filter(u=>u.socketId !== socket.id);
-      io.to(roomId).emit('room-users',roomUsers[roomId].map(u=>u.username));
+  socket.on('send-message', ({ roomId, username, message, time }) => {
+    socket.to(roomId).emit('chat-message', { username, message, time });
+  });
+
+  socket.on('disconnect', () => {
+    for (const roomId in roomUsers) {
+      const user = roomUsers[roomId].find(u => u.socketId === socket.id);
+      if (user) {
+        socket.to(roomId).emit('user-left', { username: user.username });
+        roomUsers[roomId] = roomUsers[roomId].filter(u => u.socketId !== socket.id);
+        io.to(roomId).emit('room-users', roomUsers[roomId].map(u => u.username));
+      }
     }
-  }
-    console.log('user disconnected',socket.id);
+    console.log('user disconnected', socket.id);
   });
 });
 
-
-server.listen(3000,()=>{
+server.listen(3000, () => {
   console.log('server started on port 3000');
 });
