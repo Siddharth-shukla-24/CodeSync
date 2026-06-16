@@ -6,6 +6,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const roomRoutes = require('./routes/roomRoutes');
+const aiRoutes = require('./routes/aiRoutes'); 
 const Room = require('./model/Room');
 
 const app = express();
@@ -27,6 +28,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/room', roomRoutes);
+app.use('/ai', aiRoutes);
 
 const roomUsers = {};
 
