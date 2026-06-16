@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
+console.log("Gemini key exists:", !!process.env.GEMINI_API_KEY);
 
 const roomRoutes = require('./routes/roomRoutes');
 const aiRoutes = require('./routes/aiRoutes'); 

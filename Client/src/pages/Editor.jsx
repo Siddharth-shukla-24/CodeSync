@@ -4,6 +4,77 @@ import Editor from '@monaco-editor/react';
 import socket from '../socket';
 import toast, { Toaster } from 'react-hot-toast';
 import { Copy, LogOut, MessageSquare, X, Send } from 'lucide-react';
+import AIPanel from '../components/AIPanel';
+import Sidebar from '../components/Sidebar';
+
+
+
+function ChatContent({
+  messages,
+  messageInput,
+  setMessageInput,
+  sendMessage,
+  chatEndRef
+}) {
+  return (
+    <>
+      <div style={styles.chatMessages}>
+        {messages.length === 0 && (
+          <p style={styles.chatEmpty}>No messages yet. Say hi! 👋</p>
+        )}
+
+        {messages.map((msg, i) => (
+          <div
+            key={i}
+            style={{
+              ...styles.msgBubble,
+              alignSelf: msg.isMe ? 'flex-end' : 'flex-start'
+            }}
+          >
+            {!msg.isMe && (
+              <span style={styles.msgSender}>{msg.sender}</span>
+            )}
+
+            <div
+              style={{
+                ...styles.msgText,
+                backgroundColor: msg.isMe ? '#7C3AED' : '#2a2a3a',
+                borderRadius: msg.isMe
+                  ? '12px 12px 2px 12px'
+                  : '12px 12px 12px 2px'
+              }}
+            >
+              {msg.message}
+            </div>
+
+            <span style={styles.msgTime}>{msg.time}</span>
+          </div>
+        ))}
+
+        <div ref={chatEndRef} />
+      </div>
+
+      <div style={styles.chatInput}>
+        <input
+          style={styles.chatInputField}
+          placeholder="Type a message..."
+          value={messageInput}
+          onChange={(e) => setMessageInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+        />
+
+        <button
+          style={styles.sendBtn}
+          onClick={sendMessage}
+        >
+          ➤
+        </button>
+      </div>
+    </>
+  );
+}
+
+
 
 function EditorPage() {
   const { roomId } = useParams();
@@ -11,11 +82,13 @@ function EditorPage() {
   const navigate = useNavigate();
   const username = location.state?.username || 'Anonymous';
 
-const [code, setCode] = useState('// Start coding here...\n');
+  const [code, setCode] = useState('// Start coding here...\n');
   const [users, setUsers] = useState([]);
   const [language, setLanguage] = useState('javascript');
   const [theme, setTheme] = useState('vs-dark');
   const [chatOpen, setChatOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [rightTab, setRightTab] = useState('chat'); // 'chat' | 'ai'
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
   const [cursorPos, setCursorPos] = useState({ line: 1, col: 1 });
@@ -183,6 +256,14 @@ const [code, setCode] = useState('// Start coding here...\n');
           </div>
 
           <button
+            style={{ ...styles.iconBtn, color: aiOpen ? '#7C3AED' : '#888' }}
+            onClick={() => setAiOpen(!aiOpen)}
+            title="AI Assistant"
+          >
+            ✦
+          </button>     
+
+          <button
             style={{ ...styles.iconBtn, color: chatOpen ? '#7C3AED' : '#888' }}
             onClick={() => setChatOpen(!chatOpen)}
             title="Toggle Chat"
@@ -206,6 +287,11 @@ const [code, setCode] = useState('// Start coding here...\n');
 
       {/* ========== MAIN AREA ========== */}
       <div style={styles.main}>
+
+         <Sidebar
+    roomId={roomId}
+    allUsers={allUsers}
+  />
 
         {/* Editor */}
         <div style={styles.editorWrap}>
@@ -250,6 +336,14 @@ const [code, setCode] = useState('// Start coding here...\n');
                 <X size={14} />
               </button>
             </div>
+
+            {aiOpen && (
+              <AIPanel
+                code={code}
+                language={language}
+                onClose={() => setAiOpen(false)}
+              />
+            )}
 
             <div style={styles.chatMessages}>
               {messages.length === 0 && (
