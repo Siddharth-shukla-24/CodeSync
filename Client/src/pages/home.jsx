@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default function Home() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState('create'); // 'create' | 'join'
+  const [tab, setTab] = useState('create');
   const [username, setUsername] = useState('');
   const [roomId, setRoomId] = useState('');
   const [errors, setErrors] = useState({});
@@ -22,323 +22,261 @@ export default function Home() {
   const handleSubmit = async () => {
     if (!validate()) return;
     setLoading(true);
-    await new Promise(r => setTimeout(r, 300)); // subtle loading feel
+    await new Promise(r => setTimeout(r, 300));
     const id = tab === 'create' ? uuidv4() : roomId.trim();
     navigate(`/editor/${id}`, { state: { username: username.trim() } });
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleSubmit();
-  };
+  const handleKeyDown = (e) => { if (e.key === 'Enter') handleSubmit(); };
 
   return (
-    <div style={s.root}>
-      {/* Background grid + blobs */}
+    <div style={s.page}>
       <div style={s.grid} />
       <div style={s.blob1} />
       <div style={s.blob2} />
 
-      <div style={s.layout}>
-
-        {/* ── LEFT: Hero ── */}
-        <div style={s.hero}>
-          {/* Logo */}
-          <div style={s.logoRow}>
-            <div style={s.logoMark}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-                <polyline points="16 18 22 12 16 6"/>
-                <polyline points="8 6 2 12 8 18"/>
-              </svg>
-            </div>
-            <span style={s.logoText}>CodeSync</span>
+      {/* NAV */}
+      <nav style={s.nav}>
+        <div style={s.navLogo}>
+          <div style={s.logoMark}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+              <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+            </svg>
           </div>
+          <span style={s.navLogoText}>CodeSync</span>
+        </div>
+        <a href="#features" style={s.navLink}>Features</a>
+      </nav>
 
-          {/* Badge */}
-          <div style={s.badge}>✦ AI-Powered Collaboration</div>
+      {/* HERO */}
+      <section style={s.hero}>
+        <div style={s.badge}>✦ AI-Powered Collaboration</div>
 
-          {/* Headline */}
-          <h1 style={s.headline}>
-            Code together.<br />
-            <span style={s.accent}>Ship faster.</span>
-          </h1>
+        <h1 style={s.headline}>
+          Code together.<br />
+          <span style={s.accent}>Ship faster.</span>
+        </h1>
 
-          <p style={s.sub}>
-            A real-time collaborative editor with an AI pair programmer built in.
-            Share a room, write code, get instant AI reviews — together.
-          </p>
+        <p style={s.sub}>
+          A real-time collaborative editor with an AI pair programmer built in.
+          Share a room, write code, get instant AI reviews — together.
+        </p>
 
-          {/* Feature pills */}
-          <div style={s.pills}>
-            {FEATURES.map(f => (
-              <div key={f.label} style={{ ...s.pill, borderColor: f.color + '40' }}>
-                <span style={{ color: f.color }}>{f.icon}</span>
-                <span style={s.pillLabel}>{f.label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Social proof */}
-          <div style={s.proof}>
-            <div style={s.proofAvatars}>
-              {['S', 'A', 'R', 'M'].map((c, i) => (
-                <div key={i} style={{
-                  ...s.proofAvatar,
-                  backgroundColor: FEATURES[i % FEATURES.length].color,
-                  marginLeft: i ? '-6px' : 0,
-                }}>
-                  {c}
-                </div>
-              ))}
-            </div>
-            <span style={s.proofText}>Developers coding right now</span>
-          </div>
+        <div style={s.heroCtas}>
+          <button style={s.ctaPrimary} onClick={() => document.getElementById('start')?.scrollIntoView({ behavior: 'smooth' })}>
+            Start Coding Free →
+          </button>
+          <a href="#features" style={s.ctaGhost}>See Features</a>
         </div>
 
-        {/* ── RIGHT: Auth Card ── */}
-        <div style={s.card}>
+        {/* PRODUCT MOCKUP */}
+        <div style={s.mockupWrap}>
+          <div style={s.mockup}>
+            <div style={s.mockupBar}>
+              <div style={s.mockupDots}>
+                <span style={{ ...s.dot, background: '#ef4444' }} />
+                <span style={{ ...s.dot, background: '#f59e0b' }} />
+                <span style={{ ...s.dot, background: '#22c55e' }} />
+              </div>
+              <span style={s.mockupRoomId}>room-7f3a91...</span>
+              <div style={s.mockupAvatars}>
+                {['S', 'A', 'R'].map((c, i) => (
+                  <div key={i} style={{ ...s.mockupAvatar, background: ['#6366f1','#ec4899','#10b981'][i], marginLeft: i ? '-6px' : 0 }}>{c}</div>
+                ))}
+              </div>
+            </div>
+            <div style={s.mockupBody}>
+              <div style={s.mockupCode}>
+                <div style={s.codeLine}><span style={s.kw}>function</span> <span style={s.fn}>reviewPR</span>() {'{'}</div>
+                <div style={s.codeLine}>&nbsp;&nbsp;<span style={s.kw}>const</span> result = ai.analyze(code);</div>
+                <div style={s.codeLine}>&nbsp;&nbsp;<span style={s.kw}>return</span> result.suggestions;</div>
+                <div style={s.codeLine}>{'}'}</div>
+                <div style={s.cursorLine}>
+                  <span style={s.liveCursor} />
+                  <span style={s.cursorLabel}>Aman is typing...</span>
+                </div>
+              </div>
+              <div style={s.mockupAiPanel}>
+                <div style={s.aiPanelHeader}>✦ AI Review</div>
+                <div style={s.aiPanelLine}>✓ No critical issues found</div>
+                <div style={s.aiPanelLine}>💡 Consider memoizing this call</div>
+                <div style={s.aiPanelLine}>⚡ O(n) complexity — looks good</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          {/* Tabs */}
+      {/* AUTH CARD */}
+      <section id="start" style={s.startSection}>
+        <div style={s.card}>
           <div style={s.tabs}>
             {['create', 'join'].map(t => (
-              <button
-                key={t}
-                onClick={() => { setTab(t); setErrors({}); }}
-                style={{ ...s.tab, ...(tab === t ? s.tabActive : {}) }}
-              >
+              <button key={t} onClick={() => { setTab(t); setErrors({}); }}
+                style={{ ...s.tab, ...(tab === t ? s.tabActive : {}) }}>
                 {t === 'create' ? '+ New Room' : '→ Join Room'}
               </button>
             ))}
           </div>
-
-          {/* Form */}
           <div style={s.form}>
-            {/* Username */}
             <div style={s.fieldWrap}>
               <label style={s.label}>Your name</label>
-              <input
-                style={{ ...s.input, ...(errors.username ? s.inputError : {}) }}
-                placeholder="e.g. Sid"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                onKeyDown={handleKeyDown}
-                autoFocus
+              <input style={{ ...s.input, ...(errors.username ? s.inputError : {}) }}
+                placeholder="e.g. Sid" value={username} onChange={e => setUsername(e.target.value)}
+                onKeyDown={handleKeyDown} autoFocus
                 onFocus={e => e.target.style.borderColor = 'var(--brand-500)'}
-                onBlur={e => e.target.style.borderColor = errors.username ? 'var(--error)' : 'var(--border-default)'}
-              />
+                onBlur={e => e.target.style.borderColor = errors.username ? 'var(--error)' : 'var(--border-default)'} />
               {errors.username && <span style={s.errText}>{errors.username}</span>}
             </div>
-
-            {/* Room ID — only in join tab */}
             {tab === 'join' && (
               <div style={s.fieldWrap}>
                 <label style={s.label}>Room ID</label>
-                <input
-                  style={{ ...s.input, ...(errors.roomId ? s.inputError : {}) }}
-                  placeholder="Paste the room ID"
-                  value={roomId}
-                  onChange={e => setRoomId(e.target.value)}
+                <input style={{ ...s.input, ...(errors.roomId ? s.inputError : {}) }}
+                  placeholder="Paste the room ID" value={roomId} onChange={e => setRoomId(e.target.value)}
                   onKeyDown={handleKeyDown}
                   onFocus={e => e.target.style.borderColor = 'var(--brand-500)'}
-                  onBlur={e => e.target.style.borderColor = errors.roomId ? 'var(--error)' : 'var(--border-default)'}
-                />
+                  onBlur={e => e.target.style.borderColor = errors.roomId ? 'var(--error)' : 'var(--border-default)'} />
                 {errors.roomId && <span style={s.errText}>{errors.roomId}</span>}
               </div>
             )}
-
-            {/* Submit */}
-            <button
-              style={{ ...s.btn, opacity: loading ? 0.7 : 1 }}
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading
-                ? 'Starting...'
-                : tab === 'create' ? '+ Create Room' : '→ Join Room'
-              }
+            <button style={{ ...s.btn, opacity: loading ? 0.7 : 1 }} onClick={handleSubmit} disabled={loading}>
+              {loading ? 'Starting...' : tab === 'create' ? '+ Create Room' : '→ Join Room'}
             </button>
           </div>
-
           <p style={s.cardNote}>No sign-up required · Rooms expire after 7 days</p>
         </div>
+      </section>
 
-      </div>
+      {/* FEATURE GRID */}
+      <section id="features" style={s.featuresSection}>
+        <h2 style={s.featuresTitle}>Everything you need to ship together</h2>
+        <div style={s.featureGrid}>
+          {FEATURES_FULL.map(f => (
+            <div key={f.title} style={s.featureCard}
+              onMouseEnter={e => e.currentTarget.style.borderColor = f.color + '50'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-subtle)'}>
+              <div style={{ ...s.featureIconBox, background: f.color + '15', color: f.color }}>{f.icon}</div>
+              <h3 style={s.featureCardTitle}>{f.title}</h3>
+              <p style={s.featureCardDesc}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* SOCIAL PROOF */}
+      <section style={s.statsSection}>
+        <div style={s.statsGrid}>
+          {STATS.map(st => (
+            <div key={st.label} style={s.statBox}>
+              <div style={s.statNum}>{st.num}</div>
+              <div style={s.statLabel}>{st.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={s.footer}>
+        <div style={s.footerLeft}>
+          <div style={s.logoMark}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
+              <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+            </svg>
+          </div>
+          <span style={s.footerText}>CodeSync — Built for developers who ship together.</span>
+        </div>
+        <span style={s.footerText}>© 2026 CodeSync</span>
+      </footer>
     </div>
   );
 }
 
-// ── Data ──
-const FEATURES = [
-  { icon: '👥', label: 'Real-time sync',      color: '#6366f1' },
-  { icon: '🤖', label: 'AI pair programmer',  color: '#ec4899' },
-  { icon: '⚡', label: '<100ms latency',       color: '#f59e0b' },
-  { icon: '💻', label: '7 languages',          color: '#10b981' },
+const FEATURES_FULL = [
+  { icon: '👥', title: 'Real-time collaboration', desc: 'Multiple developers editing the same file with <100ms sync latency.', color: '#6366f1' },
+  { icon: '🔍', title: 'AI Code Review', desc: 'Gemini-powered streaming reviews — bugs, complexity, and suggestions instantly.', color: '#ec4899' },
+  { icon: '🐛', title: 'AI Bug Detection', desc: 'Catch issues before you commit, surfaced inline in the editor.', color: '#f59e0b' },
+  { icon: '💻', title: 'Multi-language support', desc: 'JavaScript, Python, C++, Java, and more — out of the box.', color: '#10b981' },
+  { icon: '🔒', title: 'Secure room sharing', desc: 'Private rooms with unique IDs. No accounts, no friction.', color: '#3b82f6' },
+  { icon: '⚡', title: 'Instant sync', desc: 'WebSocket-powered code and chat sync across every collaborator.', color: '#8b5cf6' },
 ];
 
-// ── Styles ──
+const STATS = [
+  { num: '<100ms', label: 'Sync latency' },
+  { num: '7+', label: 'Languages supported' },
+  { num: '95%', label: 'Fewer DB writes (debounced)' },
+  { num: '24/7', label: 'Live AI assistant' },
+];
+
 const s = {
-  root: {
-    minHeight: '100vh',
-    backgroundColor: 'var(--bg-canvas)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '24px',
-    position: 'relative',
-    overflow: 'hidden',
-    fontFamily: 'var(--font-sans)',
-  },
-  grid: {
-    position: 'absolute', inset: 0, pointerEvents: 'none',
-    backgroundImage: `
-      linear-gradient(rgba(99,102,241,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(99,102,241,0.05) 1px, transparent 1px)
-    `,
-    backgroundSize: '48px 48px',
-  },
-  blob1: {
-    position: 'absolute', top: '-20%', left: '-10%',
-    width: '600px', height: '600px', borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)',
-    pointerEvents: 'none',
-  },
-  blob2: {
-    position: 'absolute', bottom: '-20%', right: '-10%',
-    width: '500px', height: '500px', borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(236,72,153,0.08) 0%, transparent 70%)',
-    pointerEvents: 'none',
-  },
-  layout: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '72px',
-    width: '100%',
-    maxWidth: '960px',
-    position: 'relative',
-    zIndex: 1,
-  },
+  page: { position: 'relative', backgroundColor: 'var(--bg-canvas)', overflow: 'hidden', minHeight: '100vh', fontFamily: 'var(--font-sans)' },
+  grid: { position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: `linear-gradient(rgba(99,102,241,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.05) 1px, transparent 1px)`, backgroundSize: '48px 48px' },
+  blob1: { position: 'absolute', top: '-15%', left: '-10%', width: '600px', height: '600px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.14) 0%, transparent 70%)', pointerEvents: 'none' },
+  blob2: { position: 'absolute', top: '20%', right: '-15%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(236,72,153,0.1) 0%, transparent 70%)', pointerEvents: 'none' },
 
-  // Hero
-  hero: { flex: 1, display: 'flex', flexDirection: 'column', gap: '22px', minWidth: 0 },
-  logoRow: { display: 'flex', alignItems: 'center', gap: '10px' },
-  logoMark: {
-    width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
-    background: 'linear-gradient(135deg, var(--brand-500), var(--brand-700))',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
-  },
-  logoText: { fontSize: '18px', fontWeight: 700, letterSpacing: '-0.3px' },
-  badge: {
-    display: 'inline-flex', width: 'fit-content',
-    padding: '5px 12px',
-    borderRadius: 'var(--radius-full)',
-    border: '1px solid rgba(99,102,241,0.35)',
-    backgroundColor: 'rgba(99,102,241,0.08)',
-    fontSize: '12px', fontWeight: 600,
-    color: 'var(--brand-400)', letterSpacing: '0.04em',
-  },
-  headline: {
-    fontSize: 'clamp(30px, 4vw, 46px)',
-    fontWeight: 800, lineHeight: 1.15,
-    letterSpacing: '-1.5px',
-    color: 'var(--text-primary)',
-  },
-  accent: {
-    background: 'linear-gradient(135deg, var(--brand-400), #ec4899)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  },
-  sub: {
-    fontSize: '15px', color: 'var(--text-secondary)',
-    lineHeight: 1.65, maxWidth: '420px',
-  },
-  pills: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
-  pill: {
-    display: 'flex', alignItems: 'center', gap: '6px',
-    padding: '5px 11px',
-    borderRadius: 'var(--radius-full)',
-    border: '1px solid',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    fontSize: '12px', color: 'var(--text-secondary)',
-  },
-  pillLabel: { whiteSpace: 'nowrap' },
-  proof: { display: 'flex', alignItems: 'center', gap: '10px' },
-  proofAvatars: { display: 'flex', alignItems: 'center' },
-  proofAvatar: {
-    width: 22, height: 22, borderRadius: '50%',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 9, fontWeight: 700, color: '#fff',
-    border: '1.5px solid var(--bg-canvas)',
-    position: 'relative',
-  },
-  proofText: { fontSize: '12px', color: 'var(--text-muted)' },
+  nav: { position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px clamp(20px, 5vw, 64px)', maxWidth: '1280px', margin: '0 auto' },
+  navLogo: { display: 'flex', alignItems: 'center', gap: '10px' },
+  logoMark: { width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0, background: 'linear-gradient(135deg, var(--brand-500), var(--brand-700))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' },
+  navLogoText: { fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' },
+  navLink: { fontSize: '13px', color: 'var(--text-secondary)', textDecoration: 'none' },
 
-  // Card
-  card: {
-    width: '380px', flexShrink: 0,
-    background: 'rgba(17,17,19,0.85)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid var(--border-default)',
-    borderRadius: 'var(--radius-lg)',
-    padding: '28px',
-    boxShadow: '0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)',
-  },
-  tabs: {
-    display: 'flex',
-    backgroundColor: 'var(--bg-canvas)',
-    borderRadius: 'var(--radius-md)',
-    padding: '3px', marginBottom: '24px',
-    border: '1px solid var(--border-subtle)',
-  },
-  tab: {
-    flex: 1, padding: '8px',
-    background: 'none', border: 'none',
-    borderRadius: '8px',
-    color: 'var(--text-muted)',
-    fontSize: '13px', fontWeight: 600,
-    cursor: 'pointer', transition: 'all var(--transition)',
-    fontFamily: 'var(--font-sans)',
-  },
-  tabActive: {
-    backgroundColor: 'var(--bg-elevated)',
-    color: 'var(--text-primary)',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.4)',
-  },
+  hero: { position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto', padding: 'clamp(40px,8vh,80px) clamp(20px,5vw,40px) 0', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '22px' },
+  badge: { display: 'inline-flex', padding: '5px 12px', borderRadius: 'var(--radius-full)', border: '1px solid rgba(99,102,241,0.35)', backgroundColor: 'rgba(99,102,241,0.08)', fontSize: '12px', fontWeight: 600, color: 'var(--brand-400)', letterSpacing: '0.04em' },
+  headline: { fontSize: 'clamp(36px, 6vw, 60px)', fontWeight: 800, lineHeight: 1.1, letterSpacing: '-2px', color: 'var(--text-primary)' },
+  accent: { background: 'linear-gradient(135deg, var(--brand-400), #ec4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' },
+  sub: { fontSize: 'clamp(14px,1.6vw,16px)', color: 'var(--text-secondary)', lineHeight: 1.65, maxWidth: '540px' },
+  heroCtas: { display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '6px' },
+  ctaPrimary: { padding: '13px 26px', background: 'linear-gradient(135deg, var(--brand-500), var(--brand-600))', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '15px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 20px rgba(99,102,241,0.35)', fontFamily: 'var(--font-sans)', transition: 'transform 150ms ease' },
+  ctaGhost: { padding: '13px 26px', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)', fontSize: '15px', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center' },
+
+  mockupWrap: { width: '100%', maxWidth: '820px', marginTop: '32px', padding: '0 8px' },
+  mockup: { borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-default)', backgroundColor: 'var(--bg-surface)', boxShadow: '0 30px 80px rgba(0,0,0,0.55)', overflow: 'hidden' },
+  mockupBar: { display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-elevated)' },
+  mockupDots: { display: 'flex', gap: '6px' },
+  dot: { width: 9, height: 9, borderRadius: '50%' },
+  mockupRoomId: { fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', flex: 1, textAlign: 'center' },
+  mockupAvatars: { display: 'flex' },
+  mockupAvatar: { width: 18, height: 18, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 700, color: '#fff', border: '1.5px solid var(--bg-elevated)' },
+  mockupBody: { display: 'flex', minHeight: '220px' },
+  mockupCode: { flex: 1.4, padding: '18px 20px', fontFamily: 'var(--font-mono)', fontSize: '13px', lineHeight: 1.8, color: 'var(--text-secondary)', textAlign: 'left', borderRight: '1px solid var(--border-subtle)' },
+  kw: { color: '#c084fc' },
+  fn: { color: '#60a5fa' },
+  codeLine: {},
+  cursorLine: { display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px' },
+  liveCursor: { width: '2px', height: '14px', backgroundColor: '#ec4899', display: 'inline-block', animation: 'blink 1s step-start infinite' },
+  cursorLabel: { fontSize: '11px', color: '#ec4899', fontFamily: 'var(--font-sans)' },
+  mockupAiPanel: { flex: 1, padding: '18px 16px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '10px' },
+  aiPanelHeader: { fontSize: '12px', fontWeight: 700, color: 'var(--brand-400)', marginBottom: '4px' },
+  aiPanelLine: { fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 },
+
+  startSection: { position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', padding: 'clamp(48px,8vh,90px) 20px' },
+  card: { width: '100%', maxWidth: '380px', background: 'rgba(17,17,19,0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '28px', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' },
+  tabs: { display: 'flex', backgroundColor: 'var(--bg-canvas)', borderRadius: 'var(--radius-md)', padding: '3px', marginBottom: '24px', border: '1px solid var(--border-subtle)' },
+  tab: { flex: 1, padding: '8px', background: 'none', border: 'none', borderRadius: '8px', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-sans)' },
+  tabActive: { backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)', boxShadow: '0 1px 4px rgba(0,0,0,0.4)' },
   form: { display: 'flex', flexDirection: 'column', gap: '14px' },
   fieldWrap: { display: 'flex', flexDirection: 'column', gap: '6px' },
-  label: {
-    fontSize: '11px', fontWeight: 600,
-    color: 'var(--text-secondary)',
-    letterSpacing: '0.06em', textTransform: 'uppercase',
-  },
-  input: {
-    height: '42px', padding: '0 14px',
-    backgroundColor: 'var(--bg-elevated)',
-    border: '1px solid var(--border-default)',
-    borderRadius: 'var(--radius-md)',
-    color: 'var(--text-primary)',
-    fontSize: '14px', outline: 'none',
-    fontFamily: 'var(--font-sans)',
-    transition: 'border-color var(--transition)',
-    width: '100%',
-  },
+  label: { fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' },
+  input: { height: '42px', padding: '0 14px', backgroundColor: 'var(--bg-elevated)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', fontFamily: 'var(--font-sans)', width: '100%' },
   inputError: { borderColor: 'var(--error)' },
   errText: { fontSize: '11px', color: 'var(--error)' },
-  btn: {
-    height: '44px', marginTop: '4px',
-    background: 'linear-gradient(135deg, var(--brand-500), var(--brand-600))',
-    color: '#fff', border: 'none',
-    borderRadius: 'var(--radius-md)',
-    fontSize: '15px', fontWeight: 700,
-    cursor: 'pointer', width: '100%',
-    fontFamily: 'var(--font-sans)',
-    boxShadow: '0 4px 16px rgba(99,102,241,0.3)',
-    transition: 'opacity var(--transition)',
-  },
-  cardNote: {
-    marginTop: '18px', textAlign: 'center',
-    fontSize: '11px', color: 'var(--text-muted)',
-  },
+  btn: { height: '44px', marginTop: '4px', background: 'linear-gradient(135deg, var(--brand-500), var(--brand-600))', color: '#fff', border: 'none', borderRadius: 'var(--radius-md)', fontSize: '15px', fontWeight: 700, cursor: 'pointer', width: '100%', fontFamily: 'var(--font-sans)', boxShadow: '0 4px 16px rgba(99,102,241,0.3)' },
+  cardNote: { marginTop: '18px', textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)' },
+
+  featuresSection: { position: 'relative', zIndex: 1, maxWidth: '1100px', margin: '0 auto', padding: '0 clamp(20px,5vw,40px) clamp(60px,8vh,100px)' },
+  featuresTitle: { fontSize: 'clamp(24px,3.5vw,34px)', fontWeight: 800, color: 'var(--text-primary)', textAlign: 'center', marginBottom: '40px', letterSpacing: '-1px' },
+  featureGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' },
+  featureCard: { backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', padding: '22px', transition: 'border-color 200ms ease, transform 200ms ease' },
+  featureIconBox: { width: '40px', height: '40px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', marginBottom: '14px' },
+  featureCardTitle: { fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' },
+  featureCardDesc: { fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6 },
+
+  statsSection: { position: 'relative', zIndex: 1, borderTop: '1px solid var(--border-subtle)', padding: 'clamp(40px,6vh,60px) 20px' },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '24px', maxWidth: '800px', margin: '0 auto', textAlign: 'center' },
+  statBox: { display: 'flex', flexDirection: 'column', gap: '6px' },
+  statNum: { fontSize: 'clamp(22px,3vw,30px)', fontWeight: 800, color: 'var(--brand-400)' },
+  statLabel: { fontSize: '12px', color: 'var(--text-muted)' },
+
+  footer: { position: 'relative', zIndex: 1, borderTop: '1px solid var(--border-subtle)', display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between', padding: '24px clamp(20px,5vw,40px)' },
+  footerLeft: { display: 'flex', alignItems: 'center', gap: '10px' },
+  footerText: { fontSize: '12px', color: 'var(--text-muted)' },
 };

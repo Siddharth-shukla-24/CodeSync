@@ -71,3 +71,10 @@ body {
   outline: 2px solid var(--brand-500);
   outline-offset: 2px;
 }
+
+/* Blinking cursor animation for landing page mockup */
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}

@@ -3,7 +3,7 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import socket from '../socket';
 import toast, { Toaster } from 'react-hot-toast';
-import { Copy, LogOut, MessageSquare, X, Send } from 'lucide-react';
+import { Copy, LogOut, MessageSquare } from 'lucide-react';
 import AIPanel from '../components/AIPanel';
 import Sidebar from '../components/Sidebar';
 
@@ -210,7 +210,7 @@ function EditorPage() {
       <div style={styles.topBar}>
         {/* Left — Logo */}
         <div style={styles.topLeft}>
-          <span style={styles.logo}>💻 CodeSync</span>
+          <span style={styles.logo}>CodeSync</span>
         </div>
 
         {/* Center — Room ID + Copy */}
@@ -327,61 +327,47 @@ function EditorPage() {
           </div>
         </div>
 
-        {/* Chat Panel */}
-        {chatOpen && (
-          <div style={styles.chatPanel}>
-            <div style={styles.chatHeader}>
-              <span>💬 Chat</span>
-              <button style={styles.iconBtn} onClick={() => setChatOpen(false)}>
-                <X size={14} />
-              </button>
+          {(chatOpen || aiOpen) && (
+            <div style={styles.rightPanel}>
+              <div style={styles.rightTabs}>
+                <button
+                  onClick={() => setRightTab('chat')}
+                  style={{ ...styles.rightTab, ...(rightTab === 'chat' ? styles.rightTabActive : {}) }}
+                >
+                  💬 Chat
+                </button>
+                <button
+                  onClick={() => setRightTab('ai')}
+                  style={{ ...styles.rightTab, ...(rightTab === 'ai' ? styles.rightTabActive : {}) }}
+                >
+                  ✦ AI Assistant
+                </button>
+                <button
+                  style={styles.rightCloseBtn}
+                  onClick={() => { setChatOpen(false); setAiOpen(false); }}
+                >
+                  ✕
+                </button>
+              </div>
+              <div style={styles.rightBody}>
+                {rightTab === 'chat' && (
+                  <ChatContent
+                    messages={messages}
+                    messageInput={messageInput}
+                    setMessageInput={setMessageInput}
+                    sendMessage={sendMessage}
+                    chatEndRef={chatEndRef}
+                  />
+                )}
+                {rightTab === 'ai' && (
+                  <AIPanel code={code} language={language} embedded />
+                )}
+              </div>
             </div>
-
-            {aiOpen && (
-              <AIPanel
-                code={code}
-                language={language}
-                onClose={() => setAiOpen(false)}
-              />
-            )}
-
-            <div style={styles.chatMessages}>
-              {messages.length === 0 && (
-                <p style={styles.chatEmpty}>No messages yet. Say hi! 👋</p>
-              )}
-              {messages.map((msg, i) => (
-                <div key={i} style={{ ...styles.msgBubble, alignSelf: msg.isMe ? 'flex-end' : 'flex-start' }}>
-                  {!msg.isMe && <span style={styles.msgSender}>{msg.sender}</span>}
-                  <div style={{
-                    ...styles.msgText,
-                    backgroundColor: msg.isMe ? '#7C3AED' : '#2a2a3a',
-                    borderRadius: msg.isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px'
-                  }}>
-                    {msg.message}
-                  </div>
-                  <span style={styles.msgTime}>{msg.time}</span>
-                </div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
-
-            <div style={styles.chatInput}>
-              <input
-                style={styles.chatInputField}
-                placeholder="Type a message..."
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-              />
-              <button style={styles.sendBtn} onClick={sendMessage}>
-                <Send size={14} />
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
 }
 
 const styles = {
@@ -546,6 +532,57 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
   },
+
+  // ADD THESE HERE
+rightPanel: {
+  width: '360px',
+  flexShrink: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  backgroundColor: 'var(--bg-surface)',
+  borderLeft: '1px solid var(--border-subtle)',
+},
+
+rightTabs: {
+  display: 'flex',
+  alignItems: 'center',
+  borderBottom: '1px solid var(--border-subtle)',
+  flexShrink: 0,
+},
+
+rightTab: {
+  flex: 1,
+  padding: '12px 8px',
+  background: 'none',
+  border: 'none',
+  borderBottom: '2px solid transparent',
+  color: 'var(--text-muted)',
+  fontSize: '13px',
+  fontWeight: 600,
+  cursor: 'pointer',
+  fontFamily: 'var(--font-sans)',
+},
+
+rightTabActive: {
+  color: 'var(--brand-400)',
+  borderBottom: '2px solid var(--brand-500)',
+},
+
+rightCloseBtn: {
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  color: 'var(--text-muted)',
+  padding: '0 12px',
+  fontSize: '13px',
+},
+
+rightBody: {
+  flex: 1,
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+},
 };
 
 export default EditorPage;

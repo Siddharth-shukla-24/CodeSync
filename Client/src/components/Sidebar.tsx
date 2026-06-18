@@ -1,4 +1,11 @@
-export default function Sidebar({ roomId, allUsers }) {
+import type { User } from '../types';
+
+interface SidebarProps {
+  roomId: string;
+  allUsers: User[];
+}
+
+export default function Sidebar({ roomId, allUsers }: SidebarProps) {
   return (
     <div style={s.sidebar}>
       <div style={s.section}>
@@ -30,9 +37,9 @@ export default function Sidebar({ roomId, allUsers }) {
 }
 
 const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'];
-const getColor = (name) => COLORS[name.charCodeAt(0) % COLORS.length];
+const getColor = (name: string): string => COLORS[name.charCodeAt(0) % COLORS.length];
 
-const s = {
+const s: Record<string, React.CSSProperties> = {
   sidebar: {
     width: '220px', flexShrink: 0,
     backgroundColor: 'var(--bg-surface)',
