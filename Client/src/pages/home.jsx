@@ -123,7 +123,7 @@ export default function Home() {
               <label style={s.label}>Your name</label>
               <input style={{ ...s.input, ...(errors.username ? s.inputError : {}) }}
                 placeholder="e.g. Sid" value={username} onChange={e => setUsername(e.target.value)}
-                onKeyDown={handleKeyDown} autoFocus
+                onKeyDown={handleKeyDown} 
                 onFocus={e => e.target.style.borderColor = 'var(--brand-500)'}
                 onBlur={e => e.target.style.borderColor = errors.username ? 'var(--error)' : 'var(--border-default)'} />
               {errors.username && <span style={s.errText}>{errors.username}</span>}
