@@ -8,6 +8,16 @@ import AIPanel from '../components/AIPanel';
 import Sidebar from '../components/Sidebar';
 
 
+const STARTERS = {
+  javascript: '// Start coding here...\n',
+  typescript: '// Start coding here...\n',
+  java:       '// Start coding here...\n',
+  cpp:        '// Start coding here...\n',
+  go:         '// Start coding here...\n',
+  rust:       '// Start coding here...\n',
+  python:     '# Start coding here...\n',
+};
+
 
 function ChatContent({
   messages,
@@ -92,6 +102,7 @@ function EditorPage() {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
   const [cursorPos, setCursorPos] = useState({ line: 1, col: 1 });
+  const [isConnected, setIsConnected] = useState(socket.connected);
   const isRemoteUpdate = useRef(false);
   const chatEndRef = useRef(null);
 
@@ -169,6 +180,19 @@ function EditorPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+  const onConnect = () => setIsConnected(true);
+  const onDisconnect = () => setIsConnected(false);
+
+  socket.on("connect", onConnect);
+  socket.on("disconnect", onDisconnect);
+
+  return () => {
+    socket.off("connect", onConnect);
+    socket.off("disconnect", onDisconnect);
+  };
+}, []);
+
   const handleCodeChange = (newCode) => {
     if (isRemoteUpdate.current) {
       isRemoteUpdate.current = false;
@@ -178,11 +202,20 @@ function EditorPage() {
     socket.emit('code-change', { roomId, code: newCode });
   };
 
-  const handleLanguageChange = (e) => {
-    const newLang = e.target.value;
-    setLanguage(newLang);
-    socket.emit('language-change', { roomId, language: newLang });
-  };
+const handleLanguageChange = (e) => {
+  const newLang = e.target.value;
+  setLanguage(newLang);
+  socket.emit('language-change', { roomId, language: newLang });
+
+  // If the editor still has a generic starter comment, replace it
+  // with the correct one for the new language. Don't wipe real code.
+  const isStarter = Object.values(STARTERS).includes(code);
+  if (isStarter) {
+    const newCode = STARTERS[newLang];
+    setCode(newCode);
+    socket.emit('code-change', { roomId, code: newCode });
+  }
+};
 
   const copyRoomId = () => {
     navigator.clipboard.writeText(roomId);
@@ -210,7 +243,8 @@ function EditorPage() {
       <div style={styles.topBar}>
         {/* Left — Logo */}
         <div style={styles.topLeft}>
-          <span style={styles.logo}>CodeSync</span>
+          <span style={styles.logo}>
+            CodeSync</span>
         </div>
 
         {/* Center — Room ID + Copy */}
@@ -221,6 +255,35 @@ function EditorPage() {
             <Copy size={14} />
           </button>
         </div>
+        
+        <div style={{
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+  padding: "3px 9px",
+  borderRadius: "999px",
+  backgroundColor: isConnected
+    ? "rgba(34,197,94,.12)"
+    : "rgba(239,68,68,.12)",
+  border: `1px solid ${
+    isConnected
+      ? "rgba(34,197,94,.25)"
+      : "rgba(239,68,68,.25)"
+  }`,
+  fontSize: "11px",
+  fontWeight: 600,
+  color: isConnected ? "#22c55e" : "#ef4444",
+}}>
+  <span
+    style={{
+      width: 6,
+      height: 6,
+      borderRadius: "50%",
+      backgroundColor: isConnected ? "#22c55e" : "#ef4444",
+    }}
+  />
+  {isConnected ? "Live" : "Disconnected"}
+</div>
 
         {/* Right — Language + Users + Theme + Leave */}
         <div style={styles.topRight}>

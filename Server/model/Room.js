@@ -17,7 +17,7 @@ const roomSchema = new mongoose.Schema({
 
   lastCode:{
     type:String,
-    default:'\\Start coding here...\n'
+    default:'//Start coding here...\n'
   }
 });
 

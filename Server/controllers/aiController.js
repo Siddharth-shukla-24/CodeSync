@@ -28,6 +28,94 @@ ${code}
 \`\`\`
 `;
 
+const buildExplainPrompt = (code, language) => `
+You are explaining code to a developer in a live pair-programming session.
+Explain the following ${language} code clearly and concisely.
+
+Respond in this exact structure using markdown:
+
+## What it does
+2-3 sentences, plain language.
+
+## Step by step
+- Brief bullet for each major logical step.
+
+## Key concepts
+- Any notable patterns, algorithms, or language features used.
+
+Keep the entire response under 200 words.
+
+CODE:
+\`\`\`${language}
+${code}
+\`\`\`
+`;
+
+const explainCode = async (req, res) => {
+  const { code, language } = req.body;
+
+  if (!code || typeof code !== 'string' || !code.trim()) {
+    return res.status(400).json({ success: false, message: 'Code is required' });
+  }
+  if (code.length > 20000) {
+    return res.status(400).json({ success: false, message: 'Code too long (max 20,000 chars)' });
+  }
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ success: false, message: 'AI service not configured' });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  try {
+    const prompt = buildExplainPrompt(code, language || 'javascript');
+
+    const geminiRes = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 500 },
+      }),
+    });
+
+    if (!geminiRes.ok || !geminiRes.body) {
+      const errText = await geminiRes.text().catch(() => 'Unknown error');
+      res.write(`data: ${JSON.stringify({ error: 'Gemini API error', detail: errText })}\n\n`);
+      return res.end();
+    }
+
+    const reader = geminiRes.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const textMatches = buffer.matchAll(/"text":\s*"((?:[^"\\]|\\.)*)"/g);
+      for (const match of textMatches) {
+        const chunk = match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+        res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+      }
+      buffer = '';
+    }
+
+    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+    res.end();
+  } catch (err) {
+    console.error('AI explain error:', err.message);
+    res.write(`data: ${JSON.stringify({ error: 'Failed to generate explanation' })}\n\n`);
+    res.end();
+  }
+};
+
+
+
+
+
 const reviewCode = async (req, res) => {
   const { code, language } = req.body;
 
@@ -100,5 +188,7 @@ const reviewCode = async (req, res) => {
     res.end();
   }
 };
-
-module.exports = { reviewCode };
+module.exports = {
+  reviewCode,
+  explainCode
+};

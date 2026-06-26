@@ -1,8 +1,7 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const router = express.Router();
-const { reviewCode } = require('../controllers/aiController');
-
+const { reviewCode, explainCode } = require('../controllers/aiController');
 // Stricter limit for AI routes — these hit an external paid API
 const aiLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
@@ -13,5 +12,6 @@ const aiLimiter = rateLimit({
 });
 
 router.post('/review', aiLimiter, reviewCode);
+router.post('/explain', aiLimiter, explainCode);
 
 module.exports = router;

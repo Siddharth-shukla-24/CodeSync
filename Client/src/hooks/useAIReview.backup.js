@@ -1,11 +1,10 @@
 import { useState, useCallback, useRef } from 'react';
 
-export function useAIReview(endpoint = '/ai/review') {
+export function useAIReview() {
   const [output, setOutput] = useState('');
   const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'streaming' | 'done' | 'error'
   const [errorMsg, setErrorMsg] = useState('');
   const abortRef = useRef(null);
-  const lastArgsRef = useRef(null);
 
   const runReview = useCallback(async (code, language) => {
     if (!code?.trim()) {
@@ -26,7 +25,7 @@ export function useAIReview(endpoint = '/ai/review') {
     const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
 
     try {
-      const res = await fetch(`${serverUrl}${endpoint}`, {
+      const res = await fetch(`${serverUrl}/ai/review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, language }),
@@ -80,46 +79,12 @@ export function useAIReview(endpoint = '/ai/review') {
       setStatus('error');
       setErrorMsg(err.message || 'Something went wrong.');
     }
-  }, [endpoint]);
-
-
-  const runReviewTracked = useCallback((code, language) => {
-  lastArgsRef.current = {
-    code,
-    language
-  };
-
-  runReview(code, language);
-}, [runReview]);
-
-
-const regenerate = useCallback(() => {
-  if (lastArgsRef.current) {
-    runReview(
-      lastArgsRef.current.code,
-      lastArgsRef.current.language
-    );
-  }
-}, [runReview]);
-
-const clear = useCallback(() => {
-  setOutput('');
-  setStatus('idle');
-  setErrorMsg('');
-}, []);
-
+  }, []);
 
   const cancel = useCallback(() => {
     abortRef.current?.abort();
     setStatus('idle');
   }, []);
 
-return {
-  output,
-  status,
-  errorMsg,
-  runReview: runReviewTracked,
-  regenerate,
-  clear,
-  cancel
-};}
+  return { output, status, errorMsg, runReview, cancel };
+}
