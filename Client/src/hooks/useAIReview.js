@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import { getToken } from '../auth';
 
 export function useAIReview(endpoint = '/ai/review') {
   const [output, setOutput] = useState('');
@@ -28,7 +29,7 @@ export function useAIReview(endpoint = '/ai/review') {
     try {
       const res = await fetch(`${serverUrl}${endpoint}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ code, language }),
         signal: controller.signal,
       });

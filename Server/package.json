@@ -4,6 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
+    "verify:crdt": "node scripts/verify-crdt.js",
+    "verify:reliability": "node scripts/verify-reliability.js",
+    "verify:auth": "node scripts/verify-auth.js",
+    "verify:all": "npm run verify:crdt && npm run verify:reliability && npm run verify:auth",
+    "bench:perf": "node scripts/benchmark-perf.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,11 +17,18 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.5.0",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "yjs": "^13.6.33"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^10.4.3",
+    "socket.io-client": "^4.8.3"
   }
 }

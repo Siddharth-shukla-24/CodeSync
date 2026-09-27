@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import socket from '../socket';
+import { getUser, getToken } from '../auth';
 import toast, { Toaster } from 'react-hot-toast';
 import { Copy, LogOut, MessageSquare } from 'lucide-react';
 import AIPanel from '../components/AIPanel';
 import Sidebar from '../components/Sidebar';
+import * as Y from 'yjs';
+import { MonacoBinding } from 'y-monaco';
 
 
 const STARTERS = {
@@ -88,9 +91,8 @@ function ChatContent({
 
 function EditorPage() {
   const { roomId } = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
-  const username = location.state?.username || 'Anonymous';
+  const username = getUser()?.username || 'Anonymous';
 
   const [code, setCode] = useState('// Start coding here...\n');
   const [users, setUsers] = useState([]);
@@ -103,7 +105,12 @@ function EditorPage() {
   const [messageInput, setMessageInput] = useState('');
   const [cursorPos, setCursorPos] = useState({ line: 1, col: 1 });
   const [isConnected, setIsConnected] = useState(socket.connected);
-  const isRemoteUpdate = useRef(false);
+  const [roomReady, setRoomReady] = useState(false);
+  const [ydoc] = useState(() => new Y.Doc());
+  const [ytext] = useState(() => ydoc.getText('monaco'));
+  const bindingRef = useRef(null);
+  const editorRef = useRef(null);
+  const syncedRef = useRef(false);
   const chatEndRef = useRef(null);
 
   const shortRoomId = roomId.slice(0, 8) + '...';
@@ -116,26 +123,35 @@ function EditorPage() {
 
   useEffect(() => {
     const init = async () => {
-      socket.emit('join-room', { roomId, username });
       const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000';
       try {
-        await fetch(`${serverUrl}/room/create`, {
+        const res = await fetch(`${serverUrl}/room/enter`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ roomId, createdBy: username })
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`,
+          },
+          body: JSON.stringify({ roomId })
         });
+        if (res.status === 401) { navigate('/login'); return; }
+        if (res.status === 403) {
+          toast.error('You do not have access to this room');
+          navigate('/');
+          return;
+        }
+        if (!res.ok) return;
+        setRoomReady(true);
       } catch {
-        // Silently handle error
+        // Wait for a successful room entry before starting collaboration.
       }
-      try {
-        const res = await fetch(`${serverUrl}/room/${roomId}`);
-        const data = await res.json();
-        if (data.room?.lastCode) setCode(data.room.lastCode);
-      } catch {
-        // Silently handle error
-      }
+      // Document content is delivered via the CRDT sync (yjs-sync-state), not REST.
     };
     init();
+
+    socket.on('access-denied', ({ message }) => {
+      toast.error(message || 'Access denied');
+      navigate('/');
+    });
 
     socket.on('user-joined', ({ username: joinedUser }) => {
       toast.success(`${joinedUser} joined the room`, {
@@ -149,10 +165,45 @@ function EditorPage() {
       });
     });
 
-    socket.on('code-update', ({ code: newCode }) => {
-      isRemoteUpdate.current = true;
-      setCode(newCode);
-    });
+    // ---- CRDT collaboration wiring ----
+    const onLocalUpdate = (update, origin) => {
+      if (origin === 'remote') return; // don't echo applied remote updates
+      socket.emit('yjs-update', { roomId, update });
+    };
+    ydoc.on('update', onLocalUpdate);
+
+    const onText = () => setCode(ytext.toString()); // mirror for AI panel / starters
+    ytext.observe(onText);
+
+    const onSyncState = (data) => {
+      const localState = Y.encodeStateAsUpdate(ydoc);
+      const serverDoc = new Y.Doc();
+      const serverUpdate = new Uint8Array(data);
+      Y.applyUpdate(serverDoc, serverUpdate);
+      const serverStateVector = Y.encodeStateVector(serverDoc);
+
+      Y.applyUpdate(ydoc, serverUpdate, 'remote');
+      syncedRef.current = true;
+
+      if (editorRef.current && !bindingRef.current) {
+        bindingRef.current = new MonacoBinding(
+          ytext,
+          editorRef.current.getModel(),
+          new Set([editorRef.current])
+        );
+      }
+
+      const localDelta = Y.encodeStateAsUpdate(ydoc, serverStateVector);
+      if (localDelta.length > 2 && localState.length > 2) {
+        socket.emit('yjs-update', { roomId, update: localDelta });
+      }
+      serverDoc.destroy();
+    };
+    const onRemoteUpdate = (data) => {
+      Y.applyUpdate(ydoc, new Uint8Array(data), 'remote');
+    };
+    socket.on('yjs-sync-state', onSyncState);
+    socket.on('yjs-update', onRemoteUpdate);
 
     socket.on('room-users', (userList) => {
       setUsers(userList.filter(u => u !== username));
@@ -167,12 +218,18 @@ function EditorPage() {
     });
 
     return () => {
+      socket.off('access-denied');
       socket.off('user-joined');
       socket.off('user-left');
-      socket.off('code-update');
+      socket.off('yjs-sync-state', onSyncState);
+      socket.off('yjs-update', onRemoteUpdate);
       socket.off('room-users');
       socket.off('language-update');
       socket.off('chat-message');
+      ydoc.off('update', onLocalUpdate);
+      ytext.unobserve(onText);
+      bindingRef.current?.destroy();
+      bindingRef.current = null;
     };
   }, [roomId, username]);
 
@@ -181,39 +238,42 @@ function EditorPage() {
   }, [messages]);
 
   useEffect(() => {
-  const onConnect = () => setIsConnected(true);
-  const onDisconnect = () => setIsConnected(false);
+    if (!roomReady) return undefined;
 
-  socket.on("connect", onConnect);
-  socket.on("disconnect", onDisconnect);
+    // (Re)join and resync on every connect — covers initial load and reconnect.
+    // Pushing local state lets the server merge edits made while offline.
+    const resync = () => {
+      setIsConnected(true);
+      socket.emit('join-room', { roomId, username });
+      socket.emit('yjs-update', { roomId, update: Y.encodeStateAsUpdate(ydoc) });
+    };
+    const onDisconnect = () => setIsConnected(false);
 
-  return () => {
-    socket.off("connect", onConnect);
-    socket.off("disconnect", onDisconnect);
-  };
-}, []);
+    socket.on('connect', resync);
+    socket.on('disconnect', onDisconnect);
+    if (!socket.connected) socket.connect(); // socket is autoConnect:false
+    if (socket.connected) resync();
 
-  const handleCodeChange = (newCode) => {
-    if (isRemoteUpdate.current) {
-      isRemoteUpdate.current = false;
-      return;
-    }
-    setCode(newCode);
-    socket.emit('code-change', { roomId, code: newCode });
-  };
+    return () => {
+      socket.off('connect', resync);
+      socket.off('disconnect', onDisconnect);
+      socket.disconnect(); // tear down on leave; re-created on next mount
+    };
+  }, [roomId, username, roomReady]);
 
-const handleLanguageChange = (e) => {
+  const handleLanguageChange = (e) => {
   const newLang = e.target.value;
   setLanguage(newLang);
   socket.emit('language-change', { roomId, language: newLang });
 
-  // If the editor still has a generic starter comment, replace it
-  // with the correct one for the new language. Don't wipe real code.
+  // If the editor still holds a generic starter comment, swap it for the
+  // new language's starter via a CRDT transaction. Don't wipe real code.
   const isStarter = Object.values(STARTERS).includes(code);
   if (isStarter) {
-    const newCode = STARTERS[newLang];
-    setCode(newCode);
-    socket.emit('code-change', { roomId, code: newCode });
+    ydoc.transact(() => {
+      ytext.delete(0, ytext.length);
+      ytext.insert(0, STARTERS[newLang]);
+    });
   }
 };
 
@@ -361,13 +421,19 @@ const handleLanguageChange = (e) => {
           <Editor
             height="100%"
             language={language}
-            value={code}
-            onChange={handleCodeChange}
             theme={theme}
             onMount={(editor) => {
+              editorRef.current = editor;
               editor.onDidChangeCursorPosition((e) => {
                 setCursorPos({ line: e.position.lineNumber, col: e.position.column });
               });
+              if (syncedRef.current) {
+                bindingRef.current = new MonacoBinding(
+                  ytext,
+                  editor.getModel(),
+                  new Set([editor])
+                );
+              }
             }}
             options={{
               fontSize: 15,

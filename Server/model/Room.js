@@ -10,6 +10,15 @@ const roomSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Ownership + access control.
+  owner:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  members:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   createdAt:{
     type:Date,
     default: Date.now
@@ -18,6 +27,12 @@ const roomSchema = new mongoose.Schema({
   lastCode:{
     type:String,
     default:'//Start coding here...\n'
+  },
+
+  // Base64-encoded Yjs document state (CRDT source of truth for collaboration).
+  ydocState:{
+    type:String,
+    default:null
   }
 });
 

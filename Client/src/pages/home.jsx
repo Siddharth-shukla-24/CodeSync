@@ -1,31 +1,34 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+import { isAuthed, getUser, clearAuth } from '../auth';
 
 export default function Home() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('create');
-  const [username, setUsername] = useState('');
   const [roomId, setRoomId] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const authed = isAuthed();
+  const user = getUser();
 
   const validate = () => {
     const e = {};
-    if (!username.trim()) e.username = 'Username is required';
-    else if (username.trim().length < 2) e.username = 'Min 2 characters';
     if (tab === 'join' && !roomId.trim()) e.roomId = 'Room ID is required';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleSubmit = async () => {
+    if (!authed) { navigate('/login'); return; }
     if (!validate()) return;
     setLoading(true);
     await new Promise(r => setTimeout(r, 300));
     const id = tab === 'create' ? uuidv4() : roomId.trim();
-    navigate(`/editor/${id}`, { state: { username: username.trim() } });
+    navigate(`/editor/${id}`);
   };
+
+  const logout = () => { clearAuth(); navigate('/login'); };
 
   const handleKeyDown = (e) => { if (e.key === 'Enter') handleSubmit(); };
 
@@ -45,7 +48,17 @@ export default function Home() {
           </div>
           <span style={s.navLogoText}>CodeSync</span>
         </div>
-        <a href="#features" style={s.navLink}>Features</a>
+        <div style={s.navRight}>
+          <a href="#features" style={s.navLink}>Features</a>
+          {authed ? (
+            <>
+              <span style={s.navUser}>@{user?.username}</span>
+              <button style={s.navBtn} onClick={logout}>Log out</button>
+            </>
+          ) : (
+            <button style={s.navBtn} onClick={() => navigate('/login')}>Log in</button>
+          )}
+        </div>
       </nav>
 
       {/* HERO */}
@@ -119,15 +132,13 @@ export default function Home() {
             ))}
           </div>
           <div style={s.form}>
-            <div style={s.fieldWrap}>
-              <label style={s.label}>Your name</label>
-              <input style={{ ...s.input, ...(errors.username ? s.inputError : {}) }}
-                placeholder="e.g. Sid" value={username} onChange={e => setUsername(e.target.value)}
-                onKeyDown={handleKeyDown} 
-                onFocus={e => e.target.style.borderColor = 'var(--brand-500)'}
-                onBlur={e => e.target.style.borderColor = errors.username ? 'var(--error)' : 'var(--border-default)'} />
-              {errors.username && <span style={s.errText}>{errors.username}</span>}
-            </div>
+            {authed ? (
+              <div style={s.signedIn}>Signed in as <strong style={s.signedInName}>@{user?.username}</strong></div>
+            ) : (
+              <div style={s.signedIn}>
+                <span style={s.linkText} onClick={() => navigate('/login')}>Log in</span> to create or join a room.
+              </div>
+            )}
             {tab === 'join' && (
               <div style={s.fieldWrap}>
                 <label style={s.label}>Room ID</label>
@@ -140,10 +151,10 @@ export default function Home() {
               </div>
             )}
             <button style={{ ...s.btn, opacity: loading ? 0.7 : 1 }} onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Starting...' : tab === 'create' ? '+ Create Room' : '→ Join Room'}
+              {!authed ? 'Log in to Continue' : loading ? 'Starting...' : tab === 'create' ? '+ Create Room' : '→ Join Room'}
             </button>
           </div>
-          <p style={s.cardNote}>No sign-up required · Rooms expire after 7 days</p>
+          <p style={s.cardNote}>Private rooms · Only members can open a room</p>
         </div>
       </section>
 
@@ -218,6 +229,12 @@ const s = {
   logoMark: { width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0, background: 'linear-gradient(135deg, var(--brand-500), var(--brand-700))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' },
   navLogoText: { fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' },
   navLink: { fontSize: '13px', color: 'var(--text-secondary)', textDecoration: 'none' },
+  navRight: { display: 'flex', alignItems: 'center', gap: '16px' },
+  navUser: { fontSize: '13px', fontWeight: 600, color: 'var(--brand-400)' },
+  navBtn: { padding: '7px 14px', background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-sans)' },
+  signedIn: { fontSize: '13px', color: 'var(--text-secondary)', padding: '10px 12px', backgroundColor: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', textAlign: 'center' },
+  signedInName: { color: 'var(--brand-400)' },
+  linkText: { color: 'var(--brand-400)', cursor: 'pointer', fontWeight: 600 },
 
   hero: { position: 'relative', zIndex: 1, maxWidth: '900px', margin: '0 auto', padding: 'clamp(40px,8vh,80px) clamp(20px,5vw,40px) 0', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '22px' },
   badge: { display: 'inline-flex', padding: '5px 12px', borderRadius: 'var(--radius-full)', border: '1px solid rgba(99,102,241,0.35)', backgroundColor: 'rgba(99,102,241,0.08)', fontSize: '12px', fontWeight: 600, color: 'var(--brand-400)', letterSpacing: '0.04em' },
