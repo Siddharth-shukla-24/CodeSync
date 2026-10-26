@@ -48,11 +48,7 @@ export default function Login() {
 
       <div style={s.card}>
         <div style={s.brand}>
-          <div style={s.logoMark}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-              <polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" />
-            </svg>
-          </div>
+          <img src="/assets/codesync_logo.png" alt="" style={s.logoMark} />
           <span style={s.brandText}>CodeSync</span>
         </div>
 
@@ -122,7 +118,7 @@ const s = {
 
   card: { position: 'relative', zIndex: 1, width: '100%', maxWidth: '400px', background: 'rgba(17,17,19,0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '32px', boxShadow: '0 24px 64px rgba(0,0,0,0.5)' },
   brand: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' },
-  logoMark: { width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0, background: 'linear-gradient(135deg, var(--brand-500), var(--brand-700))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' },
+  logoMark: { width: '30px', height: '30px', objectFit: 'contain', flexShrink: 0 },
   brandText: { fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' },
   title: { fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px', margin: '0 0 6px' },
   sub: { fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '0 0 22px' },

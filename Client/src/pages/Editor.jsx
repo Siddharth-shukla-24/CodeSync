@@ -303,8 +303,8 @@ function EditorPage() {
       <div style={styles.topBar}>
         {/* Left — Logo */}
         <div style={styles.topLeft}>
-          <span style={styles.logo}>
-            CodeSync</span>
+          <img src="/assets/codesync_logo.png" alt="" style={styles.logoImage} />
+          <span style={styles.logo}>CodeSync</span>
         </div>
 
         {/* Center — Room ID + Copy */}
@@ -521,6 +521,7 @@ const styles = {
     flexShrink: 0,
   },
   topLeft: { display: 'flex', alignItems: 'center', gap: '8px', minWidth: '140px' },
+  logoImage: { width: '24px', height: '24px', objectFit: 'contain', flexShrink: 0 },
   logo: { fontSize: '15px', fontWeight: '700', color: '#fff' },
   topCenter: { display: 'flex', alignItems: 'center', gap: '8px' },
   roomLabel: { fontSize: '11px', color: '#666' },

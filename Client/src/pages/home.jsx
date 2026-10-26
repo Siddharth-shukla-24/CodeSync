@@ -41,11 +41,7 @@ export default function Home() {
       {/* NAV */}
       <nav style={s.nav}>
         <div style={s.navLogo}>
-          <div style={s.logoMark}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-              <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
-            </svg>
-          </div>
+          <img src="/assets/codesync_logo.png" alt="" style={s.logoMark} />
           <span style={s.navLogoText}>CodeSync</span>
         </div>
         <div style={s.navRight}>
@@ -189,11 +185,7 @@ export default function Home() {
       {/* FOOTER */}
       <footer style={s.footer}>
         <div style={s.footerLeft}>
-          <div style={s.logoMark}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
-              <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
-            </svg>
-          </div>
+          <img src="/assets/codesync_logo.png" alt="" style={s.footerLogo} />
           <span style={s.footerText}>CodeSync — Built for developers who ship together.</span>
         </div>
         <span style={s.footerText}>© 2026 CodeSync</span>
@@ -226,7 +218,8 @@ const s = {
 
   nav: { position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px clamp(20px, 5vw, 64px)', maxWidth: '1280px', margin: '0 auto' },
   navLogo: { display: 'flex', alignItems: 'center', gap: '10px' },
-  logoMark: { width: '30px', height: '30px', borderRadius: '8px', flexShrink: 0, background: 'linear-gradient(135deg, var(--brand-500), var(--brand-700))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' },
+  logoMark: { width: '30px', height: '30px', objectFit: 'contain', flexShrink: 0 },
+  footerLogo: { width: '24px', height: '24px', objectFit: 'contain', flexShrink: 0 },
   navLogoText: { fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' },
   navLink: { fontSize: '13px', color: 'var(--text-secondary)', textDecoration: 'none' },
   navRight: { display: 'flex', alignItems: 'center', gap: '16px' },

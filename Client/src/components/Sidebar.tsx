@@ -8,6 +8,12 @@ interface SidebarProps {
 export default function Sidebar({ roomId, allUsers }: SidebarProps) {
   return (
     <div style={s.sidebar}>
+      <div style={s.brand}>
+        <img src="/assets/codesync_logo.png" alt="" style={s.logo} />
+        <span style={s.brandText}>CodeSync</span>
+      </div>
+      <div style={s.divider} />
+
       <div style={s.section}>
         <div style={s.sectionLabel}>Room</div>
         <div style={s.roomBox}>
@@ -49,6 +55,9 @@ const s: Record<string, React.CSSProperties> = {
     fontFamily: 'var(--font-sans)',
     overflowY: 'auto',
   },
+  brand: { display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0 12px' },
+  logo: { width: '28px', height: '28px', objectFit: 'contain', flexShrink: 0 },
+  brandText: { fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' },
   section: { display: 'flex', flexDirection: 'column', gap: '10px', padding: '8px 0' },
   sectionLabel: {
     fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)',
